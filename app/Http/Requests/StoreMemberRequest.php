@@ -24,11 +24,11 @@ class StoreMemberRequest extends FormRequest
     {
         return [
             'nama' => 'required|string|max:200',
-            'nim' => 'required|string|max:50',
-            'email' => 'required|email',
+            'nim' => 'required|string|max:50|unique:members,nim',
+            'email' => 'required|email|unique:members,email',
             'nomor_telepon' => 'required|string|min:10|max:15',
             'alamat' => 'required|string|max:200',
-            'status' => 'required|integer|in:0,1',
+            'status' => 'required|in:aktif,nonaktif',
         ];
     }
 }
