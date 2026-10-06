@@ -51,6 +51,4 @@
     </table>
 
     {{ $books->links() }}
-
-    <p><em>Catatan: kolom kategori masih menampilkan ID. Menampilkan nama kategori memerlukan Eloquent Relationship, dipelajari di Pertemuan 7.</em></p>
 @endsection
