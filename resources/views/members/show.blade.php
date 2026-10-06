@@ -1,4 +1,3 @@
-{{-- File: resources/views/members/show.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
