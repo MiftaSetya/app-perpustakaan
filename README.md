@@ -1,58 +1,104 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Perpustakaan Digital Kampus
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi perpustakaan berbasis Laravel: pengelolaan buku, kategori, anggota, dan peminjaman, dengan pemisahan dua service — aplikasi web (UI) dan API internal.
 
-## About Laravel
+## Tujuan
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Memudahkan mahasiswa dan dosen mengakses koleksi e-book serta karya ilmiah kapan saja, mengotomatiskan pengelolaan peminjaman, dan mendokumentasikan aset riset kampus secara aman dalam satu platform digital.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Arsitektur: Dua Server
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Aplikasi ini berjalan sebagai **dua service terpisah** yang berkomunikasi lewat HTTP:
 
-## Learning Laravel
+| Server | Port | Peran |
+|---|---|---|
+| Aplikasi web | `8000` | UI (login, dashboard, CRUD, laporan) |
+| API internal | `8011` | Sumber data JSON untuk Dashboard (`/api/stats`) dan Laporan (`/api/loans`) |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Dashboard dan halaman Laporan **tidak** melakukan query database langsung — keduanya memanggil API di port 8011 sesuai `INTERNAL_API_URL`. Karena itu **kedua server wajib berjalan bersamaan**.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Prasyarat
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- PHP >= 8.3
+- Composer
+- MySQL
 
-## Agentic Development
+## Instalasi
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone repository & install dependency
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone <url-repository> app-perpustakaan
+cd app-perpustakaan
+composer install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Setup environment
 
-## Contributing
+Salin `.env.example` menjadi `.env`, lalu generate app key:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+Sesuaikan konfigurasi berikut di `.env`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+APP_URL=http://localhost:8000
 
-## Security Vulnerabilities
+# URL API internal — WAJIB, dipakai Dashboard & Laporan
+INTERNAL_API_URL=http://127.0.0.1:8011
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Database (contoh MySQL)
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db_perpustakaan
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-## License
+> Catatan: `.env.example` bawaan memakai `DB_CONNECTION=sqlite`. Ubah ke MySQL
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3. Migrasi & seed database
+
+```bash
+php artisan migrate --seed
+```
+
+Seeder mengisi data awal: 3 user (1 admin, 2 petugas), 3 kategori, 3 buku, 3 anggota, dan 3 peminjaman.
+
+### 4. Jalankan dua server
+
+Buka **dua terminal** di root project:
+
+**Terminal 1** — aplikasi web:
+
+```bash
+php artisan serve --port=8000
+```
+
+**Terminal 2** — API internal:
+
+```bash
+php artisan serve --port=8011
+```
+
+Aplikasi web dapat diakses di `http://localhost:8000`.
+
+> **Penting:** jika server di port 8011 tidak berjalan, Dashboard akan menampilkan
+> angka 0 dan halaman Laporan akan kosong (keduanya gagal menghubungi API internal).
+
+## Akun Default
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@pens.ac.id` | `password` |
+| Petugas | `petugas1@pens.ac.id` | `password` |
+| Petugas | `petugas2@pens.ac.id` | `password` |
+
+## Dokumentasi Terkait
+
+- [`API.md`](API.md) — dokumentasi lengkap endpoint API beserta contoh request/response.
+- [`DEMO.md`](DEMO.md) — skenario demo langkah demi langkah.
