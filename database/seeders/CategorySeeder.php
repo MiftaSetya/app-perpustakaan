@@ -3,28 +3,18 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     public function run(): void
     {
         $categories = [
-            [
-                'nama_kategori' => 'Teknologi Informasi',
-                'deskripsi' => 'Buku seputar pemrograman, jaringan, dan rekayasa perangkat lunak.',
-            ],
-            [
-                'nama_kategori' => 'Sastra',
-                'deskripsi' => 'Kumpulan karya fiksi, novel, dan puisi.',
-            ],
-            [
-                'nama_kategori' => 'Pendidikan',
-                'deskripsi' => 'Buku pelajaran dan referensi akademik.',
-            ],
+            ['nama_kategori' => 'Novel', 'deskripsi' => 'Buku fiksi panjang dengan alur cerita dan karakter yang kompleks.'],
+            ['nama_kategori' => 'Komik', 'deskripsi' => 'Buku bergambar dengan narasi cerita yang divisualisasikan.'],
+            ['nama_kategori' => 'Sains', 'deskripsi' => 'Buku seputar ilmu pengetahuan alam dan penelitian ilmiah.'],
+            ['nama_kategori' => 'Teknologi', 'deskripsi' => 'Buku seputar pemrograman, komputer, dan perkembangan teknologi.'],
+            ['nama_kategori' => 'Sejarah', 'deskripsi' => 'Buku seputar peristiwa dan tokoh sejarah.'],
         ];
 
         foreach ($categories as $category) {

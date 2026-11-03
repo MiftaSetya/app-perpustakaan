@@ -6,62 +6,34 @@ use App\Models\Book;
 use App\Models\Loan;
 use App\Models\Member;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class LoanSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     public function run(): void
     {
-        $petugas = User::where('role', 'petugas')->firstOrFail();
+        $memberIds = Member::pluck('id');
+        $userIds = User::pluck('id');
+        $bookIds = Book::pluck('id');
 
-        $loanData = [
-            [
-                'member_nim' => '2111160001',
-                'status' => 'dipinjam',
-                'tanggal_pinjam' => now()->subDays(3)->toDateString(),
-                'tanggal_kembali' => now()->addDays(4)->toDateString(),
-                'tanggal_dikembalikan' => null,
-                'book_judul' => 'Clean Code',
-            ],
-            [
-                'member_nim' => '2111160002',
-                'status' => 'dikembalikan',
-                'tanggal_pinjam' => now()->subDays(14)->toDateString(),
-                'tanggal_kembali' => now()->subDays(7)->toDateString(),
-                'tanggal_dikembalikan' => now()->subDays(7)->toDateString(),
-                'book_judul' => 'Laskar Pelangi',
-            ],
-            [
-                'member_nim' => '2111160003',
-                'status' => 'terlambat',
-                'tanggal_pinjam' => now()->subDays(20)->toDateString(),
-                'tanggal_kembali' => now()->subDays(6)->toDateString(),
-                'tanggal_dikembalikan' => null,
-                'book_judul' => 'Pemrograman Web dengan Laravel',
-            ],
-        ];
+        for ($i = 0; $i < 10; $i++) {
+            $tanggalPinjam = now()->subDays(fake()->numberBetween(1, 30));
+            $tanggalKembali = $tanggalPinjam->copy()->addDays(7);
+            $status = fake()->randomElement(['dipinjam', 'dikembalikan', 'dikembalikan', 'terlambat']);
 
-        foreach ($loanData as $data) {
-            $member = Member::where('nim', $data['member_nim'])->firstOrFail();
-            $book = Book::where('judul', $data['book_judul'])->firstOrFail();
+            $loan = Loan::create([
+                'member_id' => $memberIds->random(),
+                'user_id' => $userIds->random(),
+                'tanggal_pinjam' => $tanggalPinjam->toDateString(),
+                'tanggal_kembali' => $tanggalKembali->toDateString(),
+                'tanggal_dikembalikan' => $status === 'dikembalikan'
+                    ? $tanggalKembali->copy()->subDays(fake()->numberBetween(0, 3))->toDateString()
+                    : null,
+                'status' => $status,
+            ]);
 
-            $loan = Loan::updateOrCreate(
-                [
-                    'member_id' => $member->id,
-                    'user_id' => $petugas->id,
-                    'tanggal_pinjam' => $data['tanggal_pinjam'],
-                ],
-                [
-                    'tanggal_kembali' => $data['tanggal_kembali'],
-                    'tanggal_dikembalikan' => $data['tanggal_dikembalikan'],
-                    'status' => $data['status'],
-                ]
-            );
-
-            $loan->loanItems()->firstOrCreate(['book_id' => $book->id]);
+            $bookIds->random(fake()->numberBetween(1, min(3, $bookIds->count())))
+                ->each(fn ($bookId) => $loan->loanItems()->create(['book_id' => $bookId]));
         }
     }
 }

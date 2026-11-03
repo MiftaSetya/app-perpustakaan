@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
@@ -13,12 +14,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('books.index');
-    });
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('books', BookController::class);
     Route::resource('members', MemberController::class);
+    Route::get('/loans/report', [LoanController::class, 'report'])->name('loans.report');
     Route::resource('loans', LoanController::class);
     Route::patch('/loans/{loan}/kembalikan', [LoanController::class, 'kembalikan'])->name('loans.kembalikan');
 
